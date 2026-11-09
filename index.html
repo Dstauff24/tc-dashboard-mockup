@@ -85,6 +85,27 @@ body{margin:0;background:#EEF3F8;-webkit-print-color-adjust:exact;print-color-ad
 .tc .tc-tip-h { color: var(--cds-text-secondary); }
 .tc svg text { font-size: 11px; fill: var(--color-fg-muted); font-family: var(--tc-font); }
 .tc [data-dash-source-state=refreshing] { opacity: .5; }
+@media (max-width: 640px) {
+  .tc { padding: var(--cds-pad-sm); gap: var(--cds-gap-md); border-radius: 0; }
+  .tc .tc-brand { padding: var(--cds-pad-md); gap: var(--cds-gap-md); border-radius: 10px; }
+  .tc .tc-logo { width: 84px; padding: 4px 6px; }
+  .tc h1 { font-size: 1.15rem; }
+  .tc .tc-lead { padding: var(--cds-pad-sm) var(--cds-pad-md); }
+  .tc .tc-tabs { flex-wrap: nowrap; overflow-x: auto; gap: 0; }
+  .tc .tc-tab { padding: var(--cds-pad-sm) 10px; white-space: nowrap; flex: 1 0 auto; }
+  .tc .tc-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--cds-gap-sm); }
+  .tc .tc-card { padding: var(--cds-pad-md); }
+  .tc .tc-big { font-size: 1.6rem; }
+  .tc .tc-srow { grid-template-columns: 7.5rem 1fr; }
+  .tc table, .tc tbody, .tc tr, .tc td { display: block; width: 100%; box-sizing: border-box; }
+  .tc thead { display: none; }
+  .tc tr { border: 1px solid var(--color-border-line); border-radius: 10px; padding: 6px 10px; margin: 0 0 8px; }
+  .tc td { border: 0; padding: 3px 0; display: flex; gap: 10px; justify-content: space-between; text-align: right; }
+  .tc td::before { content: attr(data-label); flex: 0 0 42%; text-align: left; font-weight: 600; color: var(--color-fg-muted); }
+  .tc td.tc-num, .tc td.tc-nowrap { text-align: right; white-space: normal; }
+  .tc td:first-child { justify-content: flex-start; text-align: left; font-weight: 700; font-size: var(--cds-font-size-body); padding-bottom: 5px; }
+  .tc td:first-child::before { display: none; }
+}
 @media print {
   .tc .tc-card { break-inside: avoid; }
   .tc .tc-filter, .tc .tc-go, .tc .tc-tabs { display: none; }
@@ -713,7 +734,14 @@ const tcPill = (health) => { const td = document.createElement('td'); const s = 
 const tcTable = (name, id, key, cells, keep) => dash.draw(name, (tb) => {
   const r = dash.data(id);
   if (r.status !== 'ok') { tb.replaceChildren(); return; }
-  tb.replaceChildren(...r.data.filter((row) => !keep || keep(row)).map((row) => { const tr = document.createElement('tr'); tr.dataset.key = row[key]; tr.append(...cells(row)); return tr; }));
+  const labels = [...(tb.closest('table') || tb).querySelectorAll('thead th')].map((th) => th.textContent.trim());
+  tb.replaceChildren(...r.data.filter((row) => !keep || keep(row)).map((row) => {
+    const tr = document.createElement('tr');
+    tr.dataset.key = row[key];
+    tr.append(...cells(row));
+    [...tr.children].forEach((td, i) => { if (labels[i]) td.dataset.label = labels[i]; });
+    return tr;
+  }));
 });
 const tcTip = (box, ev, lines) => {
   let t = box.querySelector('.tc-tip');
